@@ -20,6 +20,7 @@ var cucumberJunit = require('cucumber-junit');
 var FireFoxDriver = require('./firefoxDriver.js');
 var PhantomJSDriver = require('./phantomDriver.js');
 var ChromeDriver = require('./chromeDriver');
+var OperaDriver = require('./operaDriver');
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -41,6 +42,10 @@ function getDriverInstance() {
 
         case 'chrome': {
             driver = new ChromeDriver();
+        } break;
+
+        case 'opera': {
+            driver = new OperaDriver();
         } break;
 
         // try to load from file
