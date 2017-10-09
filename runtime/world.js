@@ -22,7 +22,6 @@ var PhantomJSDriver = require('./phantomDriver.js');
 var ChromeDriver = require('./chromeDriver');
 var OperaDriver = require('./operaDriver');
 var EdgeDriver = require('./edgeDriver');
-var IEDriver = require('./ieDriver');
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -52,10 +51,6 @@ function getDriverInstance() {
 
         case 'edge': {
             driver = new EdgeDriver();
-        } break;
-
-        case 'ie': {
-            driver = new IEDriver();
         } break;
 
         // try to load from file
