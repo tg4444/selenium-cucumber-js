@@ -127,6 +127,29 @@ module.exports = {
 
         // grab matching elements
         return driver.findElements(by.js(clickElementInDom, cssSelector, textToMatch));
-    }
+    },
 
+    /**
+     * sets the value of a specific element
+     * @param {string} cssSelector - css selector used to locate the elements
+     * @param {string} value - value to set on the target element
+     * @example
+     *      helpers.setElementValue('nav[role="navigation"] ul li a','Safety Boots');
+     */
+    setElementValue: function(cssSelector, value) {
+        var element = driver.findElement(by.css(cssSelector));
+        element.sendKeys(value);
+    },
+
+    /**
+     * click a specific element
+     * @param {string} cssSelector - css selector used to locate the element
+     * @example
+     *      helpers.clickElement('nav[role="navigation"] ul li a');
+     */
+    clickElement: function(cssSelector) {
+        
+        driver.findElement(by.css(cssSelector)).click();
+        driver.sleep(5000);
+    }
 };

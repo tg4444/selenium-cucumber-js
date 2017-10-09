@@ -65,6 +65,7 @@
     "globals": {
       "selenium": true,
       "helpers": true,
+      "util": true,
       "page": true,
       "driver": true,
       "until": true,

@@ -140,6 +140,8 @@ function importSupportObjects() {
 
     // add helpers
     global.helpers = require('../runtime/helpers.js');
+    // add util
+    global.util = require('../runtime/util.js');
 }
 
 // export the "World" required by cucumber to allow it to expose methods within step def's
