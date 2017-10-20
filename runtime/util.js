@@ -6,6 +6,20 @@ var fs = require('fs-plus');
 module.exports = {
     stepDefinitionSynonyms: null,
     /**
+    * Get the value of a variable. The value will be fetched from a json structure intended to hold step properties.
+    * Initially the code attempts to decide if the variable is a 'shortcut' to a page-specific variable.
+    * If it is, the getNestedObject will be called.
+    * Otherwise, it is assumed that the variable in on the root pageObject level, and retrieval is attempted.
+    * @returns the object
+    */
+    resolveVariable: function(pageObject, varName) {
+        var o = pageObject.application.shortcuts[varName];
+        if (o) {
+            return this.getNestedObject(pageObject.application, o);
+        }
+        return pageObject[o];
+    },
+    /**
     * finds a (nested) object by a "path"
     * @returns the object
     */
@@ -146,7 +160,6 @@ module.exports = {
                 indexes.valueIndex = i;
             }
         }
-        console.log(indexes);
         return indexes;
     }
 

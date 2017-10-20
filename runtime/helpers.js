@@ -148,18 +148,7 @@ module.exports = {
      *      helpers.clickElement('nav[role="navigation"] ul li a');
      */
     clickElement: function(cssSelector) {
-        var element = driver.findElement(by.css(cssSelector));
-        return driver.wait(until.elementIsEnabled(element)).then(function() {
-            driver.wait(until.elementIsNotVisible(driver.findElement(by.css('ion-backdrop')))).then(function() {
-            
-                element.click();
-            });
-        });
-        //driver.wait(until.elementIsNotVisible(driver.findElement(by.css('ion-backdrop')))).then(function() {
-            //driver.wait(until.elementIsNotVisible(driver.findElement(by.css('[class="click-block"]')))).then(function() {
-                //element.click();
-            //});
-        //});
+        return driver.wait(until.elementIsEnabled(driver.findElement(by.css(cssSelector))), 4000).then(driver.findElement(by.css(cssSelector)).click());
     },
     
     /**
