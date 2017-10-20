@@ -148,8 +148,49 @@ module.exports = {
      *      helpers.clickElement('nav[role="navigation"] ul li a');
      */
     clickElement: function(cssSelector) {
-        
-        driver.findElement(by.css(cssSelector)).click();
-        driver.sleep(5000);
+        var element = driver.findElement(by.css(cssSelector));
+        return driver.wait(until.elementIsEnabled(element)).then(function() {
+            driver.wait(until.elementIsNotVisible(driver.findElement(by.css('ion-backdrop')))).then(function() {
+            
+                element.click();
+            });
+        });
+        //driver.wait(until.elementIsNotVisible(driver.findElement(by.css('ion-backdrop')))).then(function() {
+            //driver.wait(until.elementIsNotVisible(driver.findElement(by.css('[class="click-block"]')))).then(function() {
+                //element.click();
+            //});
+        //});
+    },
+    
+    /**
+     * Get a specific element
+     * @param {string} cssSelector - css selector used to locate the element
+     * @example
+     *      helpers.findElement('nav[role="navigation"] ul li a');
+     */
+    getElement: function(cssSelector) {
+        return driver.findElement(by.css(cssSelector));
+    },
+
+    /**
+     * @name waitForUrlToChangeTo
+     * @description Wait until the URL changes to match a provided regex
+     * @param {RegExp} urlRegex wait until the URL changes to match this regex
+     * @returns {!webdriver.promise.Promise} Promise
+     */
+    waitForUrlToChangeTo: function (urlRegex) {
+        var currentUrl;
+
+        return driver.getCurrentUrl().then(function storeCurrentUrl(url) {
+                currentUrl = url;
+            }
+        ).then(function waitForUrlToChangeTo() {
+                return driver.wait(function waitForUrlToChangeTo() {
+                    return driver.getCurrentUrl().then(function compareCurrentUrl(url) {
+                        return urlRegex.test(url);
+                    });
+                });
+            }
+        );
     }
 };

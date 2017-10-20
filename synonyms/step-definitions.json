@@ -1,0 +1,37 @@
+{ "step-definitions": [
+    {
+      "step-definition": "And I click the ${VARIABLE} element",
+      "step-synonyms": [
+        "(?:.+) (?:I click the) (\\$\\{.*\\}) (?:element)",
+        "(?:.+) (?:I click the) (\\$\\{.*\\}) (?:button)",
+        "(?:.+) (?:I click the) (\\$\\{.*\\}) (?:component)",
+        "(?:.+) (?:The) (\\$\\{.*\\}) (?:element is clicked)",
+        "(?:.+) (?:The) (\\$\\{.*\\}) (?:button is clicked)",
+        "(?:.+) (?:The) (\\$\\{.*\\}) (?:component is clicked)"
+      ]
+    },
+    {
+      "step-definition": "Given I am on the ${VARIABLE} page",
+      "step-synonyms": [
+        "(?:.+) (?:The current page is) (\\$\\{.*\\})",
+        "(?:.+) (?:The browser is at the) (\\$\\{.*\\}) page",
+        "(?:.+) (?:The browser URL is) (\\$\\{.*\\})"
+      ]
+    },
+    {
+      "step-definition": "Then The user is redirected to a URL that matches the _VALUE_ regular expression",
+      "step-synonyms": [
+        "(?:.+) (?:The browser redirects to) (\"[^\"]*\")",
+        "(?:.+) (?:The) (\"[^\"]*\") page is loaded",
+        "(?:.+) (?:A new URL that contains) (\"[^\"]*\") is loaded"
+      ]
+    },
+    {
+      "step-definition": "Then The ${VARIABLE} element contains the _VALUE_ text",
+      "step-synonyms": [
+        "(?:.+) (?:The) (\\$\\{.*\\}) component (?:contains the) (\"[^\"]*\") (?:value)",
+        "(?:.+) (?:The) (\"[^\"]*\") (?:value can be found at the) (\\$\\{.*\\}) component "
+      ]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 module.exports = {
-
+    //loginUsername: '${pages.zmail.cssSelectors.username}',
     application: {
         pages: {
             zmail: {

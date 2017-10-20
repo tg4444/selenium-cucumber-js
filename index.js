@@ -5,6 +5,7 @@ var path = require('path');
 var program = require('commander');
 var pjson = require('./package.json');
 var cucumber = require('cucumber');
+var util = require('./runtime/util');
 
 function collectPaths(value, paths) {
     paths.push(value);
@@ -89,56 +90,72 @@ global.sharedObjectPaths = program.sharedObjects.map(function(item) {
 // rewrite command line switches for cucumber
 process.argv.splice(2, 100);
 
-// allow a specific feature file to be executed
-if (program.featureFile) {
-    process.argv.push(program.featureFile);
+console.log(program.featureFile);
+
+/**
+ * Overriding behavior in a major way
+ */
+util.loadStepDefinitionSynonyms();
+util.generateDynamicFeatureFile(proceedAfterFeatureFileGeneration);
+//program.featureFile = dynamicFeatureFile;
+
+//console.log(program.featureFile);
+
+
+function proceedAfterFeatureFileGeneration(dynamicFeatureFile){
+    process.argv.push(dynamicFeatureFile);
+    
+    // if (program.featureFile) {
+    //     process.argv.push(program.featureFile);
+    // }
+    
+    // add switch to tell cucumber to produce json report files
+    process.argv.push('-f');
+    process.argv.push('pretty');
+    process.argv.push('-f');
+    process.argv.push('json:' + path.resolve(__dirname, global.reportsPath, 'cucumber-report.json'));
+    
+    // add cucumber world as first required script (this sets up the globals)
+    process.argv.push('-r');
+    process.argv.push(path.resolve(__dirname, 'runtime/world.js'));
+    
+    // add path to import step definitions
+    process.argv.push('-r');
+    process.argv.push(path.resolve(program.steps));
+    
+    // add tag
+    if (program.tags) {
+        program.tags.forEach(function (tag) {
+          process.argv.push('-t');
+          process.argv.push(tag);
+        })
+    }
+    
+    // add strict option (fail if there are any undefined or pending steps)
+    process.argv.push('-S');
+    
+    //
+    // execute cucumber
+    //
+    var cucumberCli = cucumber.Cli(process.argv);
+    
+    global.cucumber = cucumber;
+    
+    cucumberCli.run(function (succeeded) {
+    
+        var code = succeeded ? 0 : 1;
+    
+        function exitNow() {
+            process.exit(code);
+        }
+    
+        if (process.stdout.write('')) {
+            exitNow();
+        }
+        else {
+            // write() returned false, kernel buffer is not empty yet...
+            process.stdout.on('drain', exitNow);
+        }
+    });
+
 }
-
-// add switch to tell cucumber to produce json report files
-process.argv.push('-f');
-process.argv.push('pretty');
-process.argv.push('-f');
-process.argv.push('json:' + path.resolve(__dirname, global.reportsPath, 'cucumber-report.json'));
-
-// add cucumber world as first required script (this sets up the globals)
-process.argv.push('-r');
-process.argv.push(path.resolve(__dirname, 'runtime/world.js'));
-
-// add path to import step definitions
-process.argv.push('-r');
-process.argv.push(path.resolve(program.steps));
-
-// add tag
-if (program.tags) {
-    program.tags.forEach(function (tag) {
-      process.argv.push('-t');
-      process.argv.push(tag);
-    })
-}
-
-// add strict option (fail if there are any undefined or pending steps)
-process.argv.push('-S');
-
-//
-// execute cucumber
-//
-var cucumberCli = cucumber.Cli(process.argv);
-
-global.cucumber = cucumber;
-
-cucumberCli.run(function (succeeded) {
-
-    var code = succeeded ? 0 : 1;
-
-    function exitNow() {
-        process.exit(code);
-    }
-
-    if (process.stdout.write('')) {
-        exitNow();
-    }
-    else {
-        // write() returned false, kernel buffer is not empty yet...
-        process.stdout.on('drain', exitNow);
-    }
-});
