@@ -15,7 +15,6 @@ module.exports = {
 
         // load the url and wait for it to complete
         return driver.get(url).then(function() {
-
             // now wait for the body element to be present
             return driver.wait(until.elementLocated(by.css('body')), timeout);
         });
@@ -138,7 +137,7 @@ module.exports = {
      */
     setElementValue: function(cssSelector, value) {
         var element = driver.findElement(by.css(cssSelector));
-        element.sendKeys(value);
+        return element.sendKeys(value);
     },
 
     /**
@@ -148,7 +147,11 @@ module.exports = {
      *      helpers.clickElement('nav[role="navigation"] ul li a');
      */
     clickElement: function(cssSelector) {
-        return driver.wait(until.elementIsEnabled(driver.findElement(by.css(cssSelector))), 4000).then(driver.findElement(by.css(cssSelector)).click());
+        return driver.findElement(by.css('body')).getAttribute('innerHTML').then(function(string) {
+            return driver.wait(until.elementIsEnabled(driver.findElement(by.css(cssSelector))), 10000).then(driver.findElement(by.css(cssSelector)).click());
+        });
+        
+        
     },
     
     /**

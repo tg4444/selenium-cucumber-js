@@ -209,7 +209,7 @@ module.exports = function () {
             });
         }
 
-        return driver.close().then(function() {
+        return driver.close().then(function () {
             return driver.quit();
         });
     });

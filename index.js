@@ -90,16 +90,11 @@ global.sharedObjectPaths = program.sharedObjects.map(function(item) {
 // rewrite command line switches for cucumber
 process.argv.splice(2, 100);
 
-console.log(program.featureFile);
-
 /**
  * Overriding behavior in a major way
  */
 util.loadStepDefinitionSynonyms();
 util.generateDynamicFeatureFile(proceedAfterFeatureFileGeneration);
-//program.featureFile = dynamicFeatureFile;
-
-//console.log(program.featureFile);
 
 
 function proceedAfterFeatureFileGeneration(dynamicFeatureFile){

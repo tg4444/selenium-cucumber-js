@@ -4,6 +4,7 @@ var fs = require('fs-plus');
 
 
 module.exports = {
+    scenarios: [],
     stepDefinitionSynonyms: null,
     /**
     * Get the value of a variable. The value will be fetched from a json structure intended to hold step properties.
@@ -91,13 +92,17 @@ module.exports = {
                     rowText = synonym;
                 }
 
-                dynamicFeatureFileContent += rowText + '\n';                
+                dynamicFeatureFileContent += rowText + '\n';
             }
 
             dynamicFeatureFileContent += '\n\n';
         }
 
-        fs.writeFile(generatedFeatureFile, dynamicFeatureFileContent, function (err) {            
+        this.parseScenarios(dynamicFeatureFileContent);
+
+        dynamicFeatureFileContent = this.processInjects(dynamicFeatureFileContent);
+
+        fs.writeFile(generatedFeatureFile, dynamicFeatureFileContent, function (err) {
             if (err) {
                 // something went wrong, file probably not written.
                 console.log(err);
@@ -161,6 +166,80 @@ module.exports = {
             }
         }
         return indexes;
+    },
+    /**
+    * Post-processes the generated feature file
+    */
+    postProcessGeneratedFile: function(featureText) {
+        var scenarioRegex = new RegExp(/(?:\s*)Scenario:(.+)(?:$)((?:(?:\s*)(?:Given|When|Then|And|But)(?:.+)(?:$))*)/gmi);
+        var match;
+        while ((match = scenarioRegex.exec(featureText)) !== null) {
+            var scenario = {
+                name: match[1],
+                text: match[2]
+            };
+            this.scenarios.push(scenario);
+        }
     }
-
+    ,
+    /**
+    * Goes through the feature text, identifies scenarios, and stores them in an array for later use
+    */
+    parseScenarios: function(featureText) {
+        //var scenarioRegex = new RegExp(/(?:\s*)Scenario:(.+)(?:$)((?:(?:\s*)(?:Given|When|Then|And|But)(?:.+)(?:$))*)/gmi);
+        //var scenarioRegex = new RegExp(/(?:\s*)Scenario:(.+)(?:$)((?:^(?:\s*)(?:Given|When|Then|And|But|#(?:\s*)@Inject(?:\s*))(?:.+)(?:$))*)/gmi);
+        var scenarioRegex = new RegExp(/(?:.*)Scenario:(.+)(?:.*[\n|\r\n])((?:(?:.*)(?:Given|When|Then|And|But|#(?:.*)@Inject(?:\s*))(?:.+)(?:[\n|\r\n]))*)/gmi);
+        var match;
+        while ((match = scenarioRegex.exec(featureText)) !== null) {
+            var scenario = {
+                name: match[1],
+                text: match[2].replace(/[\n|\r\n]$/, '')
+            };
+            this.scenarios.push(scenario);
+        }
+    },
+    /**
+    * Scans the feature text for the following regex:
+    * /#(?:\s*)@Inject(?:\s*)\((.+)\)(?:\s*)(?:$)/gmi
+    * If found, and a scenarion with name SCENARIO_NAME exists, the comment line is replaced by the contents of the scenario
+    * @returns the feature text, after the possible injections took place.
+    *
+    *
+    * Example:
+    *
+    * Scenario: test-scenario
+    *   Given I write a test
+    *   When I execute it
+    *   Then I get a result
+    *
+    * Scenario produce-test-report
+    * # @Inject(test-scenario)
+    *   And I produce a report from the test result
+    *
+    * # The above will be replaced with:
+    * Scenario produce-test-report
+    *   Given I write a test
+    *   When I execute it
+    *   Then I get a result
+    *   And I produce a report from the test result
+    */
+    processInjects: function(featureText) {
+        console.log('[' + featureText + ']');
+        var injectRegex = new RegExp(/#(?:\s*)@Inject(?:\s*)\((.+)\)(?:\s*)(?:$)/gmi);
+        var match;
+        while ((match = injectRegex.exec(featureText)) !== null) {
+            var scenarioName = match[1];
+            for (var i= 0; i < this.scenarios.length; i++) {
+                var scenario = this.scenarios[i];
+                if (scenario.name.trim() === scenarioName.trim()) {
+                    var preceedingText = featureText.substring(0, match.index);
+                    var succeedingText = featureText.substring(match.index + match[0].length, featureText.length);
+                    var scenarioReplacementText = this.processInjects(scenario.text);
+                    featureText = preceedingText + scenarioReplacementText + succeedingText;
+                }
+            }
+        }
+        console.log('[' + featureText + ']');
+        return featureText;
+    }
 };
