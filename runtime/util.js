@@ -52,9 +52,9 @@ module.exports = {
     * @returns the generated file path
     */
     generateDynamicFeatureFile: function(callback) {
-        var featuresDirectory = './features';
-        var generatedFeatureDirectory = 'generated-features';
-        var generatedFeatureFile = generatedFeatureDirectory + '/generated.feature';
+        var featuresDirectory = './test-features';
+        var generatedFeatureDirectory = 'features';
+        
 
         /**
          * get the feature files
@@ -69,21 +69,24 @@ module.exports = {
             fs.removeSync(generatedFeatureDirectory);
         }
         fs.makeTreeSync(generatedFeatureDirectory);
-
-        /**
-         * create generated feature file stream
-         */
-        var stream = fs.createWriteStream(generatedFeatureFile);
-        stream.on('error', function(err) { 
-            
-        });
         
         /**
          * replace any synonyms in generated file, then close stream;
          */
-        var dynamicFeatureFileContent = '';
+        
         for (var fileIndex = 0; fileIndex < featureFilesArray.length; fileIndex++) {
             var file = featureFilesArray[fileIndex];
+            var fileName = (file.indexOf('/')>-1?file.substring(file.indexOf('/') + 1):file);
+            var generatedFeatureFile = generatedFeatureDirectory + '/' + fileName;
+             /**
+             * create generated feature file stream
+             */
+            var stream = fs.createWriteStream(generatedFeatureFile);
+            stream.on('error', function(err) {
+                console.log(err);
+            });
+            var generatedFeatureFileContent = '';
+            
             var rows = fs.readFileSync(file).toString().split('\n');
             for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
                 var rowText = rows[rowIndex];
@@ -92,29 +95,16 @@ module.exports = {
                     rowText = synonym;
                 }
 
-                dynamicFeatureFileContent += rowText + '\n';
+                generatedFeatureFileContent += rowText + '\n';
             }
 
-            dynamicFeatureFileContent += '\n\n';
+            generatedFeatureFileContent += '\n\n';
+            this.parseScenarios(generatedFeatureFileContent);
+            generatedFeatureFileContent = this.processInjects(generatedFeatureFileContent);
+            fs.writeFileSync(generatedFeatureFile, generatedFeatureFileContent);
         }
 
-        this.parseScenarios(dynamicFeatureFileContent);
-
-        dynamicFeatureFileContent = this.processInjects(dynamicFeatureFileContent);
-
-        fs.writeFile(generatedFeatureFile, dynamicFeatureFileContent, function (err) {
-            if (err) {
-                // something went wrong, file probably not written.
-                console.log(err);
-            }
-
-            fs.exists(generatedFeatureFile, function (exists) {
-                if (exists) {
-                    callback(generatedFeatureFile);
-                }
-            });
-
-        });
+        callback();
     },
     /**
     * Loads synonyms of step definitions
@@ -168,26 +158,9 @@ module.exports = {
         return indexes;
     },
     /**
-    * Post-processes the generated feature file
-    */
-    postProcessGeneratedFile: function(featureText) {
-        var scenarioRegex = new RegExp(/(?:\s*)Scenario:(.+)(?:$)((?:(?:\s*)(?:Given|When|Then|And|But)(?:.+)(?:$))*)/gmi);
-        var match;
-        while ((match = scenarioRegex.exec(featureText)) !== null) {
-            var scenario = {
-                name: match[1],
-                text: match[2]
-            };
-            this.scenarios.push(scenario);
-        }
-    }
-    ,
-    /**
     * Goes through the feature text, identifies scenarios, and stores them in an array for later use
     */
     parseScenarios: function(featureText) {
-        //var scenarioRegex = new RegExp(/(?:\s*)Scenario:(.+)(?:$)((?:(?:\s*)(?:Given|When|Then|And|But)(?:.+)(?:$))*)/gmi);
-        //var scenarioRegex = new RegExp(/(?:\s*)Scenario:(.+)(?:$)((?:^(?:\s*)(?:Given|When|Then|And|But|#(?:\s*)@Inject(?:\s*))(?:.+)(?:$))*)/gmi);
         var scenarioRegex = new RegExp(/(?:.*)Scenario:(.+)(?:.*[\n|\r\n])((?:(?:.*)(?:Given|When|Then|And|But|#(?:.*)@Inject(?:\s*))(?:.+)(?:[\n|\r\n]))*)/gmi);
         var match;
         while ((match = scenarioRegex.exec(featureText)) !== null) {
@@ -224,7 +197,6 @@ module.exports = {
     *   And I produce a report from the test result
     */
     processInjects: function(featureText) {
-        console.log('[' + featureText + ']');
         var injectRegex = new RegExp(/#(?:\s*)@Inject(?:\s*)\((.+)\)(?:\s*)(?:$)/gmi);
         var match;
         while ((match = injectRegex.exec(featureText)) !== null) {
@@ -236,10 +208,10 @@ module.exports = {
                     var succeedingText = featureText.substring(match.index + match[0].length, featureText.length);
                     var scenarioReplacementText = this.processInjects(scenario.text);
                     featureText = preceedingText + scenarioReplacementText + succeedingText;
+                    break;
                 }
             }
         }
-        console.log('[' + featureText + ']');
         return featureText;
     }
 };

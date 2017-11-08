@@ -97,12 +97,11 @@ util.loadStepDefinitionSynonyms();
 util.generateDynamicFeatureFile(proceedAfterFeatureFileGeneration);
 
 
-function proceedAfterFeatureFileGeneration(dynamicFeatureFile){
-    process.argv.push(dynamicFeatureFile);
+function proceedAfterFeatureFileGeneration() {
     
-    // if (program.featureFile) {
-    //     process.argv.push(program.featureFile);
-    // }
+    if (program.featureFile) {
+        process.argv.push(program.featureFile);
+    }
     
     // add switch to tell cucumber to produce json report files
     process.argv.push('-f');
